@@ -1,8 +1,6 @@
 package webhook
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -10,7 +8,7 @@ import (
 )
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
-	payload, err := ioutil.ReadAll(r.Body)
+	payload, err := github.ValidatePayload(r, []byte("my-secret-key"))
 	if err != nil {
 		log.Printf("error reading request body: err=%s\n", err)
 		return
@@ -29,12 +27,12 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 func HandleEvent(event interface{}) {
 	switch e := event.(type) {
 	case *github.PushEvent:
-		fmt.Println("Push event.")
+		log.Println("Push event.")
 	case *github.PullRequestEvent:
-		fmt.Println("Pull Request event.")
+		log.Println("Pull Request event.")
 	case *github.WatchEvent:
-		if e.Action != nil && *e.Action == "starred" {
-			fmt.Printf("%s starred repository %s\n", *e.Sender.Login, *e.Repo.FullName)
+		if e.Action != nil && *e.Action == "started" {
+			log.Printf("%s starred repository %s\n", *e.Sender.Login, *e.Repo.FullName)
 		}
 	default:
 		log.Printf("Event type %s unknown\n", e)
